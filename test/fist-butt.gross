@@ -1,0 +1,23 @@
+var fist = 0
+var butt = 1
+var fistbutt = 2
+
+function FistButt i {
+    if i%3 == 0 {
+        if i%5 == 0 {
+            print(fistbutt)
+        } else {
+            print(fist)
+        }
+    } else {
+        if i%5 == 0 {
+            print(butt)
+        }
+    }
+    var j = i + 1
+    if j <= 100 {
+        FistButt(j)
+    }
+}
+
+FistButt(0)

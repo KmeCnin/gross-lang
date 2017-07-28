@@ -1,0 +1,16 @@
+{
+    "name": "root/gross-lang",
+    "type": "project",
+    "authors": [
+        {
+            "name": "KmeCin",
+            "email": "pierrechanel.gauthier@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1"
+    },
+    "autoload": {
+        "psr-4": {"KmeCnin\\GrossLang\\": "src/"}
+    }
+}

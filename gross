@@ -1,0 +1,11 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__ . '/vendor/autoload.php';
+
+use KmeCnin\GrossLang\Main;
+
+$program = file_get_contents($argv[1]);
+$lexicon = json_decode(file_get_contents($argv[2] ?? 'lexicon.json'), true);
+
+Main::run($program, $lexicon);
