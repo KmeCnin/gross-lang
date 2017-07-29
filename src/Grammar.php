@@ -8,6 +8,7 @@ use KmeCnin\GrossLang\Statement\Call;
 use KmeCnin\GrossLang\Statement\Func;
 use KmeCnin\GrossLang\Statement\Params;
 use KmeCnin\GrossLang\Statement\Sequence;
+use KmeCnin\GrossLang\Statement\Test;
 use KmeCnin\GrossLang\Statement\Value;
 use KmeCnin\GrossLang\Statement\Variable;
 
@@ -25,6 +26,7 @@ class Grammar
         $match = $this->assignment()
             ?? $this->func()
             ?? $this->call()
+            ?? $this->test()
             ?? null;
 
         return [$match, $this->nbTokensExtracted];
@@ -74,8 +76,7 @@ class Grammar
         ) {
             $sequence[] = $token;
         }
-
-        if (!$token) {
+        if ($token->key() !== Token::BLOCK_CLOSE) {
             return null;
         }
 
@@ -97,8 +98,10 @@ class Grammar
         while (($token = $this->extract()) instanceof ValueToken) {
             if ($token->key() === Token::VAR_NAME) {
                 $args[] = new Variable($token->val());
-            } else {
+            } elseif ($token->key() === Token::VAR) {
                 $args[] = new Value($token->val());
+            } else {
+                return null;
             }
         }
         if ($token->key() !== Token::PAREN_CLOSE) {
@@ -106,6 +109,38 @@ class Grammar
         }
 
         return new Call(new Variable($name->val()), new Args($args));
+    }
+
+    private function test(): ?Test
+    {
+        $this->nbTokensExtracted = 0;
+
+        $keyword = $this->extract();
+        if ($keyword->key() !== Token::IF) {
+            return null;
+        }
+
+        $expression = [];
+        while (($token = $this->extract()) &&
+            $token->key() !== Token::BLOCK_OPEN
+        ) {
+            $expression[] = $token;
+        }
+        if ($token->key() !== Token::PAREN_OPEN) {
+            return null;
+        }
+
+        $sequence = [];
+        while (($token = $this->extract()) &&
+            $token->key() !== Token::BLOCK_CLOSE
+        ) {
+            $sequence[] = $token;
+        }
+        if ($token->key() !== Token::BLOCK_CLOSE) {
+            return null;
+        }
+
+        return new Test(new Expression($expression), new Sequence($sequence));
     }
 
     /** @return array|ValueToken|null */
@@ -123,5 +158,15 @@ class Grammar
         }
 
         return 1 === count($extracted) ? reset($extracted) : $extracted;
+    }
+
+    private function isComparator(Token $token): bool
+    {
+        return $token->key() === Token::EQ
+            || $token->key() === Token::LT
+            || $token->key() === Token::GT
+            || $token->key() === Token::LTE
+            || $token->key() === Token::GTE
+            || $token->key() === Token::ADD;
     }
 }
