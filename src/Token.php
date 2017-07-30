@@ -60,4 +60,14 @@ abstract class Token
     {
         return $this->key;
     }
+
+    public function isComparator(): bool
+    {
+        return $this->key() === Token::EQ
+            || $this->key() === Token::LT
+            || $this->key() === Token::GT
+            || $this->key() === Token::LTE
+            || $this->key() === Token::GTE
+            || $this->key() === Token::ADD;
+    }
 }

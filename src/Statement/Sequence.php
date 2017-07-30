@@ -4,10 +4,12 @@ namespace KmeCnin\GrossLang\Statement;
 
 use KmeCnin\GrossLang\Exception\UnexpectedSyntaxException;
 use KmeCnin\GrossLang\Grammar;
+use KmeCnin\GrossLang\SequenceGrammar;
 use KmeCnin\GrossLang\Token;
 
 class Sequence implements Statement
 {
+    /** @var Grammar */
     private $grammar;
     /** @var Statement[] */
     private $statements;
@@ -15,7 +17,7 @@ class Sequence implements Statement
     /** @param Token[] $tokens */
     public function __construct(array $tokens)
     {
-        $this->grammar = new Grammar();
+        $this->grammar = new SequenceGrammar();
         $this->statements = [];
         $this->walk($tokens);
     }

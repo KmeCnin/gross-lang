@@ -5,6 +5,7 @@ namespace KmeCnin\GrossLang;
 use KmeCnin\GrossLang\Statement\Args;
 use KmeCnin\GrossLang\Statement\Assignment;
 use KmeCnin\GrossLang\Statement\Call;
+use KmeCnin\GrossLang\Statement\Expression;
 use KmeCnin\GrossLang\Statement\Func;
 use KmeCnin\GrossLang\Statement\Params;
 use KmeCnin\GrossLang\Statement\Sequence;
@@ -12,27 +13,13 @@ use KmeCnin\GrossLang\Statement\Test;
 use KmeCnin\GrossLang\Statement\Value;
 use KmeCnin\GrossLang\Statement\Variable;
 
-class Grammar
+abstract class Grammar
 {
     /** @var Token[]|ValueToken[] $tokens */
-    private $tokens;
-    private $nbTokensExtracted;
+    protected $tokens;
+    protected $nbTokensExtracted;
 
-    /** @param Token[] $tokens */
-    public function match(array $tokens): array // (?Statement, ?int $nbTokens)
-    {
-        $this->tokens = $tokens;
-
-        $match = $this->assignment()
-            ?? $this->func()
-            ?? $this->call()
-            ?? $this->test()
-            ?? null;
-
-        return [$match, $this->nbTokensExtracted];
-    }
-
-    private function assignment(): ?Assignment
+    protected function assignment(): ?Assignment
     {
         $this->nbTokensExtracted = 0;
 
@@ -49,7 +36,7 @@ class Grammar
         return new Assignment(new Variable($var->val()), new Value($value->val()));
     }
 
-    private function func(): ?Func
+    protected function func(): ?Func
     {
         $this->nbTokensExtracted = 0;
 
@@ -83,7 +70,7 @@ class Grammar
         return new Func(new Variable($name->val()), new Params($params), new Sequence($sequence));
     }
 
-    private function call(): ?Call
+    protected function call(): ?Call
     {
         $this->nbTokensExtracted = 0;
 
@@ -111,7 +98,7 @@ class Grammar
         return new Call(new Variable($name->val()), new Args($args));
     }
 
-    private function test(): ?Test
+    protected function test(): ?Test
     {
         $this->nbTokensExtracted = 0;
 
@@ -143,8 +130,23 @@ class Grammar
         return new Test(new Expression($expression), new Sequence($sequence));
     }
 
+    protected function comparison(): ?Comparison
+    {
+        $this->nbTokensExtracted = 0;
+
+        $leftExpression = [];
+        while (($token = $this->extract()) &&
+            $token->key() !== Token::BLOCK_OPEN
+        ) {
+            $expression[] = $token;
+        }
+        if ($token->key() !== Token::PAREN_OPEN) {
+            return null;
+        }
+    }
+
     /** @return array|ValueToken|null */
-    private function extract(int $nb = 1)
+    protected function extract(int $nb = 1)
     {
         $extracted = [];
         $start = $this->nbTokensExtracted;
@@ -158,15 +160,5 @@ class Grammar
         }
 
         return 1 === count($extracted) ? reset($extracted) : $extracted;
-    }
-
-    private function isComparator(Token $token): bool
-    {
-        return $token->key() === Token::EQ
-            || $token->key() === Token::LT
-            || $token->key() === Token::GT
-            || $token->key() === Token::LTE
-            || $token->key() === Token::GTE
-            || $token->key() === Token::ADD;
     }
 }
